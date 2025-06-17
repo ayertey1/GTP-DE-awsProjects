@@ -1,0 +1,38 @@
+{
+  "Comment": "Batch ETL Workflow",
+  "StartAt": "ExtractToS3",
+  "States": {
+    "ExtractToS3": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "aurora-s3-raw-dataLoad"
+      },
+      "Next": "LoadToRedshift"
+    },
+    "LoadToRedshift": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "s3-redshift-raw-dataLoad"
+      },
+      "Next": "TransformCurated"
+    },
+    "TransformCurated": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "raw-curated-transformation"
+      },
+      "Next": "GenerateKPIs"
+    },
+    "GenerateKPIs": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "curated-presentation-kpisComputation"
+      },
+      "End": true
+    }
+  }
+}
